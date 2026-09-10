@@ -19,13 +19,14 @@ from .config import Settings
 from .lint import lint_draft, load_banned
 from .llm import LLMClient
 from .memory import Memory
+from .policy import Policy, check_content, check_cost, check_models, classify_escalation
 from .publish import get_email_publisher
 from .render import Renderer, plain_text
 from .schemas import Brief, Critique, Draft, FeedItem, ResearchPack, SEOPackage, TriageResult
 from .stages import critic, editor, ingest, research, seo, writer
 from .trace import Trace
 
-STAGES = ["ingest", "triage", "research", "brief", "draft", "review", "seo", "render", "publish", "memory"]
+STAGES = ["ingest", "triage", "research", "brief", "draft", "review", "policy", "seo", "render", "publish", "memory"]
 
 
 @dataclass
@@ -36,6 +37,7 @@ class RunOptions:
     start_from: str | None = None
     stop_after: str | None = None
     skip_feeds: bool = False
+    acknowledge_escalation: bool = False  # a human has read REVIEW.md and approves publishing
 
 
 class Pipeline:
@@ -45,6 +47,7 @@ class Pipeline:
         self.trace = trace
         self.log = log
         self.memory = Memory(settings)
+        self.policy = Policy.load(settings.root)
 
     # ---- artifact helpers ------------------------------------------------
     def _dir(self, issue_id: str) -> Path:
@@ -87,6 +90,9 @@ class Pipeline:
         window_end = datetime.strptime(iid, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(hours=23, minutes=59)
         window_start = (window_end - timedelta(days=s.research.lookback_days)).strftime("%Y-%m-%d")
         self.log(f"== Issue {iid} (window {window_start} .. {iid}) ==")
+        bad = check_models(self.policy, s.models.main, s.models.fast)
+        if bad:
+            raise RuntimeError(f"policy: model(s) not on the allowlist: {bad}")
         self._save(iid, "run.json", {"issue_id": iid, "started": _now(), "dry_run": opts.dry_run,
                                      "models": {"main": s.models.main, "fast": s.models.fast}})
 
@@ -150,6 +156,25 @@ class Pipeline:
         if self._stop(opts, "review"):
             return self._finish(iid)
 
+        # 6b. policy --------------------------------------------------------
+        if self._should_run(opts, "policy", "06b-policy.json"):
+            self.log("[policy] content rules and escalation review")
+            content = check_content(final_md, self.policy)
+            decision = classify_escalation(self.client, s, self.policy, final_md)
+            for h in decision.hits:
+                content.escalations.append(f"{h.category}: {h.reason} — \"{h.passage[:120]}\"")
+            if decision.requires_human_review and not content.escalations:
+                content.escalations.append(decision.summary)
+            self._save(iid, "06b-policy.json", {**content.as_dict(), "classifier": decision.model_dump()})
+        policy_rep = self._load(iid, "06b-policy.json")
+        if not policy_rep["publishable"]:
+            self._save(iid, "REVIEW.md", _review_note(iid, draft, None, policy_rep))
+            raise RuntimeError("policy violations block publishing: " + "; ".join(policy_rep["violations"]))
+        if policy_rep["needs_review"]:
+            self.log("[policy] escalation: " + "; ".join(policy_rep["escalations"])[:300])
+        if self._stop(opts, "policy"):
+            return self._finish(iid)
+
         # 7. seo ------------------------------------------------------------
         if self._should_run(opts, "seo", "07-seo.json"):
             self.log("[seo] metadata and distribution package")
@@ -196,9 +221,16 @@ class Pipeline:
             return self._finish(iid)
 
         # 9. publish --------------------------------------------------------
-        if s.publishing.review_mode == "gate" and not opts.force:
-            self.log("[publish] review_mode=gate: stopping before publish. Re-run with --force or set review_mode=auto.")
-            self._save(iid, "REVIEW.md", _review_note(iid, draft, seo_pkg))
+        over = check_cost(self.policy, self.trace.summary()["est_cost_usd"])
+        if over and not opts.force:
+            self._save(iid, "REVIEW.md", _review_note(iid, draft, seo_pkg, policy_rep))
+            raise RuntimeError(f"policy: {over}; not publishing. Re-run with --from publish --force to override.")
+        gated = s.publishing.review_mode == "gate" and not opts.force
+        escalated = policy_rep["needs_review"] and not opts.acknowledge_escalation
+        if gated or escalated:
+            why = "review_mode=gate" if gated else "policy escalation requires a human"
+            self.log(f"[publish] {why}: stopping before publish. See issues/{iid}/REVIEW.md.")
+            self._save(iid, "REVIEW.md", _review_note(iid, draft, seo_pkg, policy_rep))
             return self._finish(iid)
         if self._should_run(opts, "publish", "08-publish.json"):
             results = []
@@ -258,8 +290,30 @@ class Pipeline:
     def _finish(self, iid: str) -> dict[str, Any]:
         summary = self.trace.summary()
         self._save(iid, "cost.json", summary)
+        self._record_production_metrics(iid, summary)
         self.log(f"== done: {summary['calls']} calls, est ${summary['est_cost_usd']:.2f} ==")
         return summary
+
+    def _record_production_metrics(self, iid: str, cost: dict[str, Any]) -> None:
+        """Append this run's quality signals to evals/production.jsonl (online eval)."""
+        d = self._dir(iid)
+        critiques = sorted(d.glob("06-critique-*.json"))
+        scores = [json.loads(c.read_text(encoding="utf-8"))["score"] for c in critiques]
+        lints = sorted(d.glob("06-lint-*.txt"))
+        last_lint = lints[-1].read_text(encoding="utf-8") if lints else ""
+        policy_rep = self._load(iid, "06b-policy.json") or {}
+        row = {
+            "issue_id": iid, "at": _now(), "critic_scores": scores, "revision_rounds": max(0, len(scores) - 1),
+            "final_lint_errors": last_lint.count("ERROR:"), "links_unreachable": last_lint.count("UNREACHABLE"),
+            "links_not_in_pack": last_lint.count("NOT IN RESEARCH PACK"),
+            "policy_violations": len(policy_rep.get("violations", [])), "policy_escalations": len(policy_rep.get("escalations", [])),
+            "published": (d / "08-publish.json").exists(), "est_cost_usd": cost.get("est_cost_usd"), "calls": cost.get("calls"),
+            "served_models": sorted({r.get("served_by") for r in self.trace.records if r.get("served_by")}),
+        }
+        path = self.settings.root / "evals" / "production.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(row) + "\n")
 
 
 def _social_md(seo_pkg: SEOPackage, url: str) -> str:
@@ -269,12 +323,20 @@ def _social_md(seo_pkg: SEOPackage, url: str) -> str:
     )
 
 
-def _review_note(iid: str, draft: Draft, seo_pkg: SEOPackage) -> str:
-    return (
-        f"# Review gate for issue {iid}\n\nTitle: {draft.title}\nSlug: {seo_pkg.slug}\n"
-        f"Email subject: {seo_pkg.email_subject}\n\nRead `final.md`, edit it if needed, then run:\n\n"
-        f"    poster run --issue {iid} --from publish --force\n"
-    )
+def _review_note(iid: str, draft: Draft, seo_pkg: SEOPackage | None, policy_rep: dict[str, Any] | None = None) -> str:
+    lines = [f"# Review gate for issue {iid}", "", f"Title: {draft.title}"]
+    if seo_pkg:
+        lines += [f"Slug: {seo_pkg.slug}", f"Email subject: {seo_pkg.email_subject}"]
+    if policy_rep:
+        if policy_rep.get("violations"):
+            lines += ["", "## Policy violations (must be fixed in final.md before publishing)"]
+            lines += [f"- {v}" for v in policy_rep["violations"]]
+        if policy_rep.get("escalations"):
+            lines += ["", "## Escalations (a human must read these passages)"]
+            lines += [f"- {e}" for e in policy_rep["escalations"]]
+    lines += ["", "Read `final.md`, edit it if needed, then publish with:", "",
+              f"    poster run --issue {iid} --from policy --force --acknowledge-escalation", ""]
+    return "\n".join(lines)
 
 
 def _now() -> str:

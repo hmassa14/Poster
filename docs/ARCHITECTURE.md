@@ -40,6 +40,11 @@ control flow, checkpoints every artifact to disk, and decides when to loop.
                         └──────────────┤
                                        ▼
                                ┌───────────────┐
+                               │    policy     │ policy.yaml: quote/PII/defamation rules block;
+                               │  + escalation │ escalation classifier forces human review
+                               └───────┬───────┘
+                                       ▼
+                               ┌───────────────┐
                                │      seo      │ slug, title tag, meta, OG,
                                └───────┬───────┘ JSON-LD, internal links, social
                                        ▼
@@ -68,6 +73,7 @@ control flow, checkpoints every artifact to disk, and decides when to loop.
 | draft | main | none | brief, pack, lessons | `05-draft.json` (`Draft`) |
 | critique | main | none (deterministic lint + HTTP link check run first) | draft, pack, lint, links | `06-critique-N.json` (`Critique`) |
 | revise | main | none | critique, lint, draft, pack | `05-draft-rN.json` |
+| policy | main (classifier) | none (deterministic rules run first) | final markdown, `policy.yaml` | `06b-policy.json`, `REVIEW.md` on escalation |
 | seo | main | none | final markdown, past issues | `07-seo.json` (`SEOPackage`) |
 | render | none | Jinja2 + Markdown | final.md, seo | `issue.html`, `email.html`, `email.txt`, `social.md`, `site/**` |
 | publish | none | email provider API | email.html | `08-publish.json` |
@@ -99,10 +105,22 @@ control flow, checkpoints every artifact to disk, and decides when to loop.
   the lessons file that every subsequent run reads. The publisher can read
   and revert those edits in git.
 
+## Policy and evals
+
+`policy.yaml` is read by `poster/policy.py` (run-time enforcement) and by
+`poster/evals/runner.py` (thresholds). The written policies in
+`docs/policies/` explain each rule. The eval suite runs the real stage entry
+points on synthetic fixtures under `evals/cases/` and writes results in the
+hillclimb layout under `evals/results/`; every real run appends its quality
+signals to `evals/production.jsonl`. See `docs/policies/eval-policy.md`.
+
 ## Safety rails
 
 - `review_mode: gate` stops before publishing and writes `REVIEW.md`; the
-  workflow opens a PR instead of pushing.
+  workflow opens a PR instead of pushing. A policy escalation does the same
+  regardless of mode; a policy violation fails the run.
+- A per-issue cost cap (`policy.yaml`) stops the run before publishing.
+- Only allowlisted models can run any stage.
 - `--dry-run` runs everything except the email send.
 - The pipeline refuses to write an issue when research returns zero stories,
   and refuses to publish when the email provider fails (the site still

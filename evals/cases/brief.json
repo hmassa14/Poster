@@ -1,0 +1,20 @@
+{
+  "working_title": "The Price Cut That Reads Like a Confession",
+  "alternate_titles": ["Sixty Percent Off, With Receipts", "What a Latency Page Admits", "Cheaper Than Your Own GPUs"],
+  "thesis": "This week the cost of running models fell faster than the models improved, and the vendors started showing their work.",
+  "lead_story_id": "s1",
+  "lead_angle": "Explain the 60% input price cut, why the published latency page matters as much as the price, and what changes for retrieval-heavy teams. Label the 'cheaper than self-hosted Marlin' line as Halcyon's claim.",
+  "also_this_week": [
+    {"story_id": "s2", "angle": "The licence change is the story, not the parameter count", "target_words": 110},
+    {"story_id": "s3", "angle": "First fine under the 2025 rules; a precedent with a number on it", "target_words": 110},
+    {"story_id": "s4", "angle": "Capacity plus price; the undercut is a vendor claim", "target_words": 100},
+    {"story_id": "s6", "angle": "Removes a common compliance objection", "target_words": 90},
+    {"story_id": "s7", "angle": "A worked example of pre-deployment evaluation", "target_words": 80}
+  ],
+  "research_corner": [{"story_id": "s5", "angle": "Ordering beats scale; state the 18-point number and the 70B ceiling", "target_words": 150}],
+  "signal_vs_noise": "The 'Marlin-27B beats Tern 3 on coding' claim compares pass@1 with 8 samples against pass@1 with 1 sample.",
+  "worth_your_time": ["https://halcyon.example/tern-3/latency — the latency page itself", "https://fennelhealth.example/talks/triage-eval-2026 — the evaluation slides"],
+  "cuts": [],
+  "corrections_to_run": [],
+  "editor_notes": "Keep vendor claims labeled."
+}

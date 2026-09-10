@@ -206,3 +206,30 @@ class FeedbackDigest(BaseModel):
     corrections: list[Correction] = Field(default_factory=list)
     ignored: list[str] = Field(default_factory=list)
     summary: str
+
+
+# ---------------------------------------------------------------- policy
+
+class EscalationHit(BaseModel):
+    category: str = Field(description="Category id from the list provided")
+    passage: str = Field(description="Exact quoted passage from the draft")
+    reason: str
+
+
+class EscalationDecision(BaseModel):
+    requires_human_review: bool
+    hits: list[EscalationHit] = Field(default_factory=list)
+    summary: str
+
+
+# ---------------------------------------------------------------- evals
+
+class CriterionVerdict(BaseModel):
+    criterion_id: str
+    met: bool
+    reason: str
+
+
+class JudgeVerdict(BaseModel):
+    verdicts: list[CriterionVerdict]
+    overall_note: str = ""

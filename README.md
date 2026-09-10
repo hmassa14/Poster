@@ -13,6 +13,8 @@ human voice and it says so in every issue.
 - Pipeline design and rationale: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - What the publication is: [`publication/profile.md`](publication/profile.md)
 - House style and format: [`publication/style.md`](publication/style.md), [`publication/format.md`](publication/format.md)
+- Policies (editorial, safety, AI use, copyright, evaluation): [`docs/policies/`](docs/policies/README.md), enforced by [`policy.yaml`](policy.yaml)
+- Evals: `poster eval`, thresholds in `policy.yaml`, method in [`docs/policies/eval-policy.md`](docs/policies/eval-policy.md)
 
 ## How an issue gets made
 
@@ -33,14 +35,21 @@ poster run
    vocabulary, link text, sign-offs) and an HTTP link check run first; then a
    critic fact-checks the draft against the pack and scores it. Under 8/10 or
    any lint error sends it back for revision, up to two rounds.
-7. **seo**: slug, title tag, meta description, Open Graph, JSON-LD, keywords,
+7. **policy**: deterministic content rules (quote limits, personal data,
+   defamatory phrasing, "we tested" claims) block publishing; an escalation
+   classifier flags sensitive material (named individuals in legal matters,
+   deaths, unpatched exploits, political persuasion, medical/legal/financial
+   advice, minors, unverified lead claims) and forces a human to read
+   `REVIEW.md` before anything ships. A cost cap stops runaway runs.
+8. **seo**: slug, title tag, meta description, Open Graph, JSON-LD, keywords,
    internal links to past issues, email subject and preheader, and LinkedIn,
    X, and Threads posts. Hard limits are enforced in code, not trusted.
-8. **render**: the issue page, the archive index, RSS, sitemap, robots.txt,
+9. **render**: the issue page, the archive index, RSS, sitemap, robots.txt,
    and an inline-styled email.
-9. **publish**: the site is committed to `site/` and deployed by GitHub Pages;
-   the email goes out through Buttondown or Resend (or a dry run).
-10. **memory**: coverage and the issue index are recorded for future issues.
+10. **publish**: the site is committed to `site/` and deployed by GitHub Pages;
+    the email goes out through Buttondown or Resend (or a dry run).
+11. **memory**: coverage and the issue index are recorded for future issues,
+    and the run's quality signals are appended to `evals/production.jsonl`.
 
 Every stage writes its artifact to `issues/<date>/`. A rerun skips finished
 stages, so a failure at publish costs nothing to retry:
@@ -95,6 +104,49 @@ issues are closed with a comment.
 Every editorial prompt reads the style guide, format spec, and lessons, so
 feedback changes research priorities, editing, writing, and review together.
 
+## Policies
+
+`policy.yaml` is the machine-readable policy; `docs/policies/` explains each
+rule and the governance around it (ownership, oversight levels, kill switch,
+corrections, incident procedure, change control). The feedback stage can
+edit the style guide and format spec but never the policy. When an issue is
+escalated, `issues/<date>/REVIEW.md` lists the flagged passages; a human
+publishes with:
+
+```
+poster run --issue 2026-09-10 --from policy --force --acknowledge-escalation
+```
+
+## Evals
+
+The system publishes without a human in the drafting loop, so evals are
+where quality is guaranteed. Fixtures are synthetic (fictional companies and
+products) so nothing is answerable from memory and no real person can be
+defamed by a test.
+
+| Flow | What it measures | Grader |
+|---|---|---|
+| `critic` | Does the fact-checker catch 12 kinds of seeded error (altered numbers, fabricated quotes, vendor claims stated as fact, unsourced links, wrong attribution, dropped benchmark conditions, banned vocabulary, sign-offs, "we tested" claims) and leave a clean draft alone? | programmatic: recall on seeded errors, specificity on the clean draft |
+| `writer` | Does the writer stay inside the research pack (every number and URL), pass the linter, and meet a 10-point rubric of checkable style criteria? | programmatic grounding + linter + model-graded rubric (judge is a different model) |
+| `triage` | Precision, recall, and duplicate merging on 24 labeled feed items | programmatic |
+| `escalation` | Does the standards classifier escalate the 7 sensitive categories and not routine news? | programmatic, both directions |
+| `seo` | Hard constraints and keyword grounding | programmatic |
+
+```
+poster eval --smoke              # oracle/null check of every grader, no API calls
+poster eval                      # all flows, results in evals/results/<flow>/baseline/
+poster eval --flow critic --reps 3
+poster eval --model claude-sonnet-5 --variant v1   # compare a candidate model
+poster eval --enforce            # exit 1 if any threshold in policy.yaml fails
+poster eval --production         # trend of real runs from evals/production.jsonl
+```
+
+Results follow the hillclimb layout (`results.jsonl`, `traces/`,
+`errors.jsonl`, `_state.json`), so infra failures never count as model
+failures, every transcript is saved, and served models are asserted. The
+`Evals` workflow runs on pull requests that touch prompts, publication files,
+policy, code, or templates and fails below threshold.
+
 ## Changing the publication
 
 - Sections, order, lengths: `publication/format.md` (the linter enforces the
@@ -116,7 +168,10 @@ estimated USD figure per stage after every run. Tune `models.effort` and the
 ## Layout
 
 ```
-poster/            the pipeline (config, llm wrapper, stages, lint, render, publish, memory, cli)
+poster/            the pipeline (config, llm wrapper, stages, lint, policy, render, publish, memory, evals, cli)
+policy.yaml        machine-readable policy: content rules, escalation categories, cost caps, eval thresholds
+docs/policies/     editorial, content safety, AI use, copyright, and evaluation policies plus governance
+evals/cases/       synthetic fixtures; evals/results/ eval runs; evals/production.jsonl live quality signals
 prompts/           one system prompt per stage
 publication/       profile, style guide, format spec, banned phrases, feeds
 templates/         Jinja2 templates for the site, RSS, sitemap, and email

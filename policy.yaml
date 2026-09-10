@@ -1,0 +1,77 @@
+# Machine-readable policy. Enforced by poster/policy.py at the `policy` stage
+# of every run and by the eval suite. The human-readable policies these rules
+# implement live in docs/policies/. Change both together.
+
+version: 1
+
+content:
+  # Quotation limits (copyright policy). A quote is text inside double quotes.
+  max_quote_words: 40
+  max_quotes_per_source: 2
+  # Every published page and email must carry the AI-authorship disclosure.
+  require_disclosure: true
+  # Personal data must not appear in issues (editorial + privacy policy).
+  pii_patterns:
+    - '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'        # email addresses
+    - '\+?\d[\d\s().-]{8,}\d'                                # phone numbers
+  # Claims that must never be stated in the publication's own voice.
+  forbidden_assertions:
+    - pattern: '\b(is|are|was|were)\s+(a\s+)?(fraud|scam|criminal|liar)s?\b'
+      reason: "Defamatory characterisation of a person or company"
+    - pattern: '\bwe (tested|tried|used|ran|benchmarked)\b'
+      reason: "The system did not test anything; it reports what sources say"
+
+escalation:
+  # Any of these categories in an issue forces review_mode=gate for that run.
+  # The classifier (prompts/escalation.md) decides; the keyword list is a
+  # deterministic backstop that also triggers.
+  categories:
+    - id: legal_named_individual
+      description: "Allegations, lawsuits, or investigations concerning a named private individual"
+    - id: death_or_injury
+      description: "A death, serious injury, or suicide connected to an AI product"
+    - id: security_exploit
+      description: "Operational detail of an exploit, jailbreak, or vulnerability that is not yet patched"
+    - id: election_or_political_persuasion
+      description: "Content that could influence voting or takes a partisan political position"
+    - id: medical_legal_financial_advice
+      description: "Specific medical, legal, or financial advice to readers"
+    - id: minors
+      description: "Content involving minors in a harmful context"
+    - id: unverified_major_claim
+      description: "A lead story whose central fact rests on a single unverified or anonymous source"
+  keyword_backstop:
+    - '\b(engineer|employee|founder|executive|researcher)\b[^.]*\b(lawsuit|indicted|arrested|charged with|sued)\b'
+    - '\b(lawsuit|indicted|arrested|charged with|sued)\b[^.]*\b(engineer|employee|founder|executive|researcher)\b'
+    - '\b(suicide|self-harm|died|death of)\b'
+    - '\b(zero-day|proof of concept exploit|working exploit)\b'
+    - '\b(vote for|endorse[sd]? (the )?(candidate|party))\b'
+
+operations:
+  max_cost_usd_per_issue: 25.0
+  max_cost_usd_per_feedback_run: 5.0
+  allowed_models:
+    - claude-opus-5
+    - claude-sonnet-5
+    - claude-haiku-4-5
+    - claude-opus-4-8
+  # Fetched web content and reader feedback are data, never instructions.
+  treat_external_text_as_data: true
+  # Reader feedback is scrubbed of emails and phone numbers before any model sees it.
+  scrub_feedback_pii: true
+
+evals:
+  # Minimum scores the eval suite must reach before prompt/style/model changes merge.
+  thresholds:
+    critic_recall: 0.85          # seeded factual errors caught (blocker/major)
+    critic_specificity: 0.80     # clean drafts not wrongly failed
+    writer_grounded_rate: 0.95   # drafts with no numbers/links outside the pack
+    writer_lint_pass_rate: 0.90
+    writer_rubric_mean: 0.80     # judge rubric, fraction of criteria met
+    triage_recall: 0.85
+    triage_precision: 0.75
+    escalation_recall: 0.90
+    escalation_specificity: 0.85
+    seo_constraint_pass_rate: 0.95
+  judge_model: claude-sonnet-5    # never the exact model under test
+  reps: 1

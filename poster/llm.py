@@ -74,6 +74,10 @@ class Claude:
         self.trace = trace
         self.client = client or anthropic.Anthropic()
         self._anthropic = anthropic
+        # Full record of the most recent calls (system, user, output, usage) so
+        # evals can save complete transcripts; bounded to keep memory flat.
+        self.calls: list[dict[str, Any]] = []
+        self.max_calls_kept = 50
 
     def complete(self, *, stage: str, system: str, user: str, output_format: type[T] | None = None,
                  tools: list[dict[str, Any]] | None = None, model: str | None = None,
@@ -144,6 +148,11 @@ class Claude:
             # Structured output guarantees JSON in the text; parse defensively.
             parsed = output_format.model_validate_json(_extract_json(text))
 
+        self.calls.append({"stage": stage, "model": model, "served_by": served_by, "system": system, "user": user,
+                           "output": text, "usage": usage_total, "stop_reason": message.stop_reason,
+                           "tools": [t.get("name") for t in tools] if tools else [], "continuations": continuations,
+                           "seconds": round(time.time() - started, 2)})
+        del self.calls[:-self.max_calls_kept]
         return LLMResult(text=text, parsed=parsed, stop_reason=message.stop_reason,
                          usage=usage_total, model=served_by)
 

@@ -26,7 +26,8 @@ def cmd_run(args: argparse.Namespace) -> int:
     trace = Trace(settings.issues_dir / issue_id / "trace.jsonl")
     pipeline = Pipeline(settings, _client(settings, trace), trace)
     opts = RunOptions(issue_id=issue_id, dry_run=args.dry_run, force=args.force, start_from=args.start_from,
-                      stop_after=args.stop_after, skip_feeds=args.skip_feeds)
+                      stop_after=args.stop_after, skip_feeds=args.skip_feeds,
+                      acknowledge_escalation=args.acknowledge_escalation)
     pipeline.run(opts)
     return 0
 
@@ -98,6 +99,36 @@ def cmd_render(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_eval(args: argparse.Namespace) -> int:
+    from .evals.runner import FLOWS, EvalOptions, EvalRunner, harness_smoke, production_report
+    from .policy import Policy
+
+    settings = load_settings(args.root)
+    policy = Policy.load(settings.root)
+    if args.production:
+        print(production_report(settings.root / "evals" / "production.jsonl"))
+        return 0
+    if args.smoke:
+        res = harness_smoke(settings, policy)
+        for name, v in res["checks"].items():
+            print(f"  {name:28s} oracle={v['oracle']:.2f}  null={v['null']:.2f}")
+        print("harness ok" if res["ok"] else "HARNESS BROKEN: an oracle failed or a null passed")
+        return 0 if res["ok"] else 1
+    flows = list(FLOWS) if args.flow == "all" else [args.flow]
+    trace = Trace(settings.root / "evals" / "results" / "trace.jsonl")
+    client = _client(settings, trace)
+    runner = EvalRunner(settings, client, policy)
+    opts = EvalOptions(flows=flows, reps=args.reps, variant=args.variant, model=args.model, judge_model=args.judge_model,
+                       limit=args.limit, out_dir=Path(args.out) if args.out else None, enforce=args.enforce)
+    summary = runner.run(opts)
+    out = opts.out_dir or (settings.root / "evals" / "results")
+    print((out / "report.md").read_text(encoding="utf-8"))
+    if args.enforce and not summary["thresholds"].get("_all_pass"):
+        print("eval thresholds not met", file=sys.stderr)
+        return 1
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     settings = load_settings(args.root)
     memory = Memory(settings)
@@ -126,6 +157,8 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--from", dest="start_from", choices=STAGES, help="start at this stage")
     r.add_argument("--to", dest="stop_after", choices=STAGES, help="stop after this stage")
     r.add_argument("--skip-feeds", action="store_true", help="skip RSS ingestion (research from web search only)")
+    r.add_argument("--acknowledge-escalation", action="store_true",
+                   help="a human has read REVIEW.md and approves publishing despite policy escalations")
     r.set_defaults(fn=cmd_run)
 
     f = sub.add_parser("feedback", help="pull feedback and fold it into the publication")
@@ -138,6 +171,19 @@ def build_parser() -> argparse.ArgumentParser:
     l = sub.add_parser("lint", help="run the deterministic checks on a markdown file")
     l.add_argument("file")
     l.set_defaults(fn=cmd_lint)
+
+    e = sub.add_parser("eval", help="run the eval suite (see docs/policies/eval-policy.md)")
+    e.add_argument("--flow", default="all", choices=["all", "critic", "writer", "triage", "escalation", "seo"])
+    e.add_argument("--reps", type=int, default=1)
+    e.add_argument("--variant", default="baseline", help="results directory name: baseline or vN")
+    e.add_argument("--model", help="override the model under test")
+    e.add_argument("--judge-model", help="override the rubric judge model")
+    e.add_argument("--limit", type=int, help="run only the first N cases per flow")
+    e.add_argument("--out", help="output directory (default evals/results)")
+    e.add_argument("--enforce", action="store_true", help="exit 1 if any threshold in policy.yaml is not met")
+    e.add_argument("--smoke", action="store_true", help="oracle/null check of every programmatic grader; no API calls")
+    e.add_argument("--production", action="store_true", help="summarise evals/production.jsonl")
+    e.set_defaults(fn=cmd_eval)
 
     sub.add_parser("render", help="rebuild the static site from stored issues").set_defaults(fn=cmd_render)
     sub.add_parser("status", help="show publication state").set_defaults(fn=cmd_status)

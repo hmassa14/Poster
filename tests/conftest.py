@@ -9,8 +9,8 @@ import pytest
 
 from poster.config import load_settings
 from poster.llm import LLMResult
-from poster.schemas import (Brief, Critique, Draft, FeedbackDigest, ItemPlan, ResearchPack, SEOPackage,
-                            SocialPosts, TriageResult)
+from poster.schemas import (Brief, Critique, Draft, EscalationDecision, FeedbackDigest, ItemPlan, ResearchPack,
+                            SEOPackage, SocialPosts, TriageResult)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.fixture
 def project(tmp_path: Path):
     """A throwaway copy of the repo's config, prompts, publication and templates."""
-    for name in ("poster.yaml", "prompts", "publication", "templates"):
+    for name in ("poster.yaml", "policy.yaml", "prompts", "publication", "templates", "evals/cases"):
         src = ROOT / name
         if src.is_dir():
             shutil.copytree(src, tmp_path / name)
@@ -123,6 +123,8 @@ class FakeClaude:
                                 social=SocialPosts(linkedin="LinkedIn {url}", x="X {url}", threads="Threads {url}"),
                                 email_subject="The price is the product", email_preheader="What changed and for whom",
                                 og_title="The Price Is the Product", og_description="Pricing moved the market.", image_alt="A pricing table")
+        elif output_format is EscalationDecision:
+            parsed = EscalationDecision(requires_human_review=False, hits=[], summary="routine industry news")
         elif output_format is FeedbackDigest:
             parsed = FeedbackDigest(rule_changes=[{"target": "style", "action": "add", "rule": "Keep 'Also this week' items under 110 words.",
                                                   "rationale": "reader asked for shorter items"}],

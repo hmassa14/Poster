@@ -1,0 +1,149 @@
+{
+  "issue_window_start": "2026-09-02",
+  "issue_window_end": "2026-09-10",
+  "lead_recommendation": "s1 — Halcyon cut Tern 3 input pricing by 60% and published the per-request latency numbers behind it, which changes the buy-vs-build math for anyone running retrieval at scale.",
+  "runner_up": "s2",
+  "noise_check": {
+    "claim": "Marlin-27B 'beats Tern 3' on coding",
+    "what_evidence_supports": "Orvex's own table shows Marlin-27B ahead on LedgerBench-Code by 1.4 points at pass@1 with 8 samples; the Tern 3 model card reports pass@1 with 1 sample. The comparison is not like for like.",
+    "source_urls": ["https://orvex.example/blog/marlin-27b", "https://halcyon.example/tern-3/model-card"]
+  },
+  "research_gaps": ["Halcyon has not published Tern 3 output-token latency at the 128K context tier."],
+  "stories": [
+    {
+      "id": "s1", "headline": "Halcyon cuts Tern 3 input pricing by 60% and publishes latency data", "one_line": "Tern 3 input tokens drop from $2.50 to $1.00 per million; a new latency page shows p50 and p99 by context tier.",
+      "category": "models", "event_date": "2026-09-08",
+      "what_happened": "Halcyon Labs announced on September 8 that Tern 3 input pricing falls from $2.50 to $1.00 per million tokens effective immediately, with output pricing unchanged at $10.00 per million. The same post introduced a public latency page reporting p50 and p99 time-to-first-token by context tier.",
+      "what_is_new": "The price cut is the first since Tern 3 launched in May 2026. The latency page is new; Halcyon previously published no latency figures.",
+      "why_it_matters": "At $1.00 per million input tokens, long-context retrieval workloads that were cheaper to serve on open-weight models become cheaper on Tern 3 for teams without their own GPUs, according to Halcyon's own cost calculator.",
+      "unknowns": "Halcyon did not say whether the cut applies to batch pricing. No figures for the 128K tier were published.",
+      "facts": [
+        {"claim": "Tern 3 input pricing falls from $2.50 to $1.00 per million tokens", "source_url": "https://halcyon.example/blog/tern-3-pricing", "verification": "verified"},
+        {"claim": "Output pricing is unchanged at $10.00 per million tokens", "source_url": "https://halcyon.example/blog/tern-3-pricing", "verification": "verified"},
+        {"claim": "p50 time-to-first-token at the 32K context tier is 410 ms; p99 is 1.9 s", "source_url": "https://halcyon.example/tern-3/latency", "verification": "verified"},
+        {"claim": "Tern 3 launched in May 2026", "source_url": "https://halcyon.example/tern-3/model-card", "verification": "verified"},
+        {"claim": "The cut makes Tern 3 cheaper than self-hosted Marlin-27B for retrieval workloads under 40M tokens per day", "source_url": "https://halcyon.example/blog/tern-3-pricing", "verification": "vendor-claim"}
+      ],
+      "quotes": [
+        {"text": "We are pricing input tokens at what they cost us to serve plus a margin we can defend, and publishing the latency numbers so nobody has to take our word for it.", "speaker": "Priya Raman", "role": "Halcyon Labs head of platform", "source_url": "https://halcyon.example/blog/tern-3-pricing"}
+      ],
+      "sources": [
+        {"title": "Tern 3 pricing update", "url": "https://halcyon.example/blog/tern-3-pricing", "publisher": "Halcyon Labs", "published": "2026-09-08", "type": "primary"},
+        {"title": "Tern 3 latency", "url": "https://halcyon.example/tern-3/latency", "publisher": "Halcyon Labs", "published": "2026-09-08", "type": "primary"},
+        {"title": "Tern 3 model card", "url": "https://halcyon.example/tern-3/model-card", "publisher": "Halcyon Labs", "published": "2026-05-14", "type": "primary"},
+        {"title": "Halcyon slashes Tern 3 prices as open-weight rivals close in", "url": "https://wiretap.example/2026/09/08/halcyon-tern-3-price-cut", "publisher": "Wiretap", "published": "2026-09-08", "type": "secondary"}
+      ],
+      "past_coverage_note": "", "rank": 1
+    },
+    {
+      "id": "s2", "headline": "Orvex releases Marlin-27B under Apache 2.0", "one_line": "A 27B-parameter open-weight model with a 256K context window and a permissive licence.",
+      "category": "open-source", "event_date": "2026-09-04",
+      "what_happened": "Orvex published Marlin-27B weights on September 4 under the Apache 2.0 licence, with a 256K token context window and a technical report.",
+      "what_is_new": "Orvex's previous release, Marlin-12B, used a custom licence that barred commercial use above 10 million monthly active users. Marlin-27B has no such clause.",
+      "why_it_matters": "Teams that rejected Marlin-12B on licence grounds can now deploy the family commercially without a negotiation.",
+      "unknowns": "The technical report does not disclose training data composition beyond 'web, code, and licensed text'.",
+      "facts": [
+        {"claim": "Marlin-27B is released under Apache 2.0", "source_url": "https://orvex.example/blog/marlin-27b", "verification": "verified"},
+        {"claim": "Context window is 256K tokens", "source_url": "https://orvex.example/blog/marlin-27b", "verification": "verified"},
+        {"claim": "Marlin-27B scores 71.2 on LedgerBench-Code at pass@1 with 8 samples", "source_url": "https://orvex.example/marlin-27b/technical-report", "verification": "vendor-claim"},
+        {"claim": "Marlin-12B's licence barred commercial use above 10 million monthly active users", "source_url": "https://orvex.example/marlin-12b/license", "verification": "verified"}
+      ],
+      "quotes": [],
+      "sources": [
+        {"title": "Introducing Marlin-27B", "url": "https://orvex.example/blog/marlin-27b", "publisher": "Orvex", "published": "2026-09-04", "type": "primary"},
+        {"title": "Marlin-27B technical report", "url": "https://orvex.example/marlin-27b/technical-report", "publisher": "Orvex", "published": "2026-09-04", "type": "primary"},
+        {"title": "Marlin-12B licence", "url": "https://orvex.example/marlin-12b/license", "publisher": "Orvex", "published": "2026-02-11", "type": "primary"}
+      ],
+      "past_coverage_note": "", "rank": 2
+    },
+    {
+      "id": "s3", "headline": "Nordic Digital Authority fines Brightline Recruit for undisclosed AI screening", "one_line": "A €4.2 million fine for using an AI model to reject applicants without telling them.",
+      "category": "policy", "event_date": "2026-09-05",
+      "what_happened": "The Nordic Digital Authority fined Brightline Recruit €4.2 million on September 5 for screening 38,000 job applications with an AI model between January and June 2026 without disclosing it to applicants, in breach of the Authority's automated-decision rules.",
+      "what_is_new": "This is the Authority's first fine under its 2025 automated-decision rules.",
+      "why_it_matters": "Any company using models to filter people at scale in the Authority's jurisdiction now has a concrete enforcement precedent and a price tag.",
+      "unknowns": "Brightline has said it will appeal; the timeline is unknown.",
+      "facts": [
+        {"claim": "The fine is €4.2 million", "source_url": "https://nda.example/decisions/2026-091", "verification": "verified"},
+        {"claim": "38,000 applications were screened between January and June 2026", "source_url": "https://nda.example/decisions/2026-091", "verification": "verified"},
+        {"claim": "Brightline will appeal", "source_url": "https://brightline.example/press/response-nda", "verification": "verified"}
+      ],
+      "quotes": [
+        {"text": "Automated rejection without disclosure is exactly the harm the rules were written to prevent.", "speaker": "Ingrid Solberg", "role": "Nordic Digital Authority director of enforcement", "source_url": "https://nda.example/decisions/2026-091"}
+      ],
+      "sources": [
+        {"title": "Decision 2026-091: Brightline Recruit", "url": "https://nda.example/decisions/2026-091", "publisher": "Nordic Digital Authority", "published": "2026-09-05", "type": "primary"},
+        {"title": "Brightline response to NDA decision", "url": "https://brightline.example/press/response-nda", "publisher": "Brightline Recruit", "published": "2026-09-05", "type": "primary"}
+      ],
+      "past_coverage_note": "", "rank": 3
+    },
+    {
+      "id": "s4", "headline": "Cinder Compute opens a 40,000-accelerator cluster in Alberta", "one_line": "Rentable capacity priced at $1.85 per accelerator-hour on one-year commitments.",
+      "category": "infrastructure", "event_date": "2026-09-09",
+      "what_happened": "Cinder Compute announced on September 9 that its Alberta site is live with 40,000 accelerators, priced at $1.85 per accelerator-hour on one-year commitments and $2.60 on demand.",
+      "what_is_new": "Cinder's previous largest site had 12,000 accelerators.",
+      "why_it_matters": "The on-demand price undercuts the three largest cloud providers' list prices for comparable hardware, per Cinder's comparison table, which is a vendor claim.",
+      "unknowns": "Cinder did not say how much of the capacity is already reserved.",
+      "facts": [
+        {"claim": "40,000 accelerators at the Alberta site", "source_url": "https://cinder.example/news/alberta-live", "verification": "verified"},
+        {"claim": "$1.85 per accelerator-hour on one-year commitments; $2.60 on demand", "source_url": "https://cinder.example/news/alberta-live", "verification": "verified"},
+        {"claim": "The on-demand price undercuts the three largest cloud providers", "source_url": "https://cinder.example/news/alberta-live", "verification": "vendor-claim"}
+      ],
+      "quotes": [],
+      "sources": [
+        {"title": "Alberta site is live", "url": "https://cinder.example/news/alberta-live", "publisher": "Cinder Compute", "published": "2026-09-09", "type": "primary"}
+      ],
+      "past_coverage_note": "", "rank": 4
+    },
+    {
+      "id": "s5", "headline": "Paper: retrieval order changes long-context answers more than model size", "one_line": "A controlled study across four models finds document order shifts accuracy by up to 18 points.",
+      "category": "research", "event_date": "2026-09-03",
+      "what_happened": "Researchers at Aldermoor University posted a preprint on September 3 testing four models on the HaystackQA-2 benchmark with retrieved documents in six orderings. Accuracy varied by up to 18 points depending on order, more than the gap between the smallest and largest model tested.",
+      "what_is_new": "Prior work showed position effects on single models; this study compares the effect size against model scale directly.",
+      "why_it_matters": "For retrieval pipelines, the ordering step is worth more engineering than model selection, per the study.",
+      "unknowns": "The study covers models up to 70B parameters; frontier hosted models were not tested.",
+      "facts": [
+        {"claim": "Accuracy varied by up to 18 points across six orderings", "source_url": "https://arxiv.example/abs/2609.01234", "verification": "verified"},
+        {"claim": "Four models up to 70B parameters were tested on HaystackQA-2", "source_url": "https://arxiv.example/abs/2609.01234", "verification": "verified"}
+      ],
+      "quotes": [],
+      "sources": [
+        {"title": "Order Matters More Than Scale: Retrieval Ordering Effects in Long-Context QA", "url": "https://arxiv.example/abs/2609.01234", "publisher": "Aldermoor University", "published": "2026-09-03", "type": "primary"}
+      ],
+      "past_coverage_note": "", "rank": 5
+    },
+    {
+      "id": "s6", "headline": "Vantage Systems ships agent audit logs to all enterprise tenants", "one_line": "Every tool call an agent makes is now recorded with inputs, outputs, and the approving policy.",
+      "category": "products", "event_date": "2026-09-07",
+      "what_happened": "Vantage Systems enabled agent audit logs for all enterprise tenants on September 7. Each record captures the tool called, its inputs and outputs, the policy that allowed it, and a 90-day retention window.",
+      "what_is_new": "Audit logs were previously a paid add-on limited to 30 days of retention.",
+      "why_it_matters": "Compliance teams that blocked agent deployments for lack of an audit trail lose that objection.",
+      "unknowns": "Export formats beyond CSV were not announced.",
+      "facts": [
+        {"claim": "Audit logs are enabled for all enterprise tenants with 90-day retention", "source_url": "https://vantage.example/changelog/2026-09-07", "verification": "verified"},
+        {"claim": "Logs were previously a paid add-on with 30-day retention", "source_url": "https://vantage.example/changelog/2026-09-07", "verification": "verified"}
+      ],
+      "quotes": [],
+      "sources": [
+        {"title": "Changelog: agent audit logs", "url": "https://vantage.example/changelog/2026-09-07", "publisher": "Vantage Systems", "published": "2026-09-07", "type": "primary"}
+      ],
+      "past_coverage_note": "", "rank": 6
+    },
+    {
+      "id": "s7", "headline": "Talk: how Fennel Health evaluated a triage model before deployment", "one_line": "A 40-minute conference talk on the evaluation protocol, with the slides published.",
+      "category": "safety", "event_date": "2026-09-06",
+      "what_happened": "Fennel Health's head of clinical AI gave a talk on September 6 describing the 14-month evaluation the company ran before deploying a triage model, including a 2,000-case blinded comparison against nurses.",
+      "what_is_new": "The full protocol and slides are public.",
+      "why_it_matters": "It is a rare worked example of a pre-deployment evaluation in a regulated setting.",
+      "unknowns": "The underlying case data is not public.",
+      "facts": [
+        {"claim": "The evaluation ran 14 months and included a 2,000-case blinded comparison", "source_url": "https://fennelhealth.example/talks/triage-eval-2026", "verification": "verified"}
+      ],
+      "quotes": [],
+      "sources": [
+        {"title": "Evaluating a triage model before deployment (slides)", "url": "https://fennelhealth.example/talks/triage-eval-2026", "publisher": "Fennel Health", "published": "2026-09-06", "type": "primary"}
+      ],
+      "past_coverage_note": "", "rank": 7
+    }
+  ]
+}

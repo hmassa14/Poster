@@ -6,3 +6,5 @@ venv/
 *.egg-info/
 .pytest_cache/
 issues/*/scratch/
+evals/results/ci/
+evals/results/trace.jsonl
