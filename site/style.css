@@ -1,0 +1,32 @@
+:root{--bg:#fbfaf7;--fg:#1c1b19;--muted:#6b675f;--accent:#b5482a;--rule:#e6e2da;--card:#ffffff;--code:#f1efe9}
+:root:not([data-theme="light"]){color-scheme:light dark}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#141311;--fg:#ece8df;--muted:#a39d92;--accent:#e2825f;--rule:#2b2925;--card:#1c1a17;--code:#22201c}}
+:root[data-theme="dark"]{--bg:#141311;--fg:#ece8df;--muted:#a39d92;--accent:#e2825f;--rule:#2b2925;--card:#1c1a17;--code:#22201c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Abel","Helvetica Neue",Arial,sans-serif;font-size:19px;line-height:1.6;padding-inline:16px}
+a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:3px}
+.wrap{max-width:720px;margin:0 auto;padding-block:32px 64px}
+.masthead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;border-bottom:2px solid var(--fg);padding-bottom:10px;margin-bottom:28px}
+.masthead .name{font-family:"Geostar","Abel",sans-serif;font-size:22px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--fg)}
+.masthead nav a{margin-left:16px;font-size:15px;color:var(--muted)}
+h1{font-size:2.1rem;line-height:1.15;margin:0 0 8px;font-weight:400}
+.dek{font-size:1.2rem;color:var(--muted);font-style:italic;margin:0 0 6px}
+.byline{font-size:.9rem;color:var(--muted);margin-bottom:28px}
+h2{font-size:1.35rem;margin:36px 0 10px;padding-top:14px;border-top:1px solid var(--rule);font-weight:400}
+p{margin:0 0 16px}
+blockquote{margin:0 0 16px;padding:8px 16px;border-left:3px solid var(--accent);background:var(--card)}
+code{background:var(--code);padding:2px 5px;border-radius:4px;font-size:.9em}
+pre{overflow-x:auto;background:var(--code);padding:12px;border-radius:6px}
+ul,ol{padding-left:22px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
+.tags span{font-size:.8rem;border:1px solid var(--rule);border-radius:999px;padding:2px 10px;color:var(--muted)}
+.related,.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:.95rem}
+.footer{color:var(--muted)}
+.footer .disclosure{padding:12px 16px;background:var(--card);border:1px solid var(--rule);border-radius:8px}
+.issue-list{list-style:none;padding:0;margin:0}
+.issue-list li{padding:18px 0;border-bottom:1px solid var(--rule)}
+.issue-list .date{font-size:.85rem;color:var(--muted)}
+.issue-list h3{margin:4px 0 6px;font-size:1.3rem;font-weight:400}
+.issue-list p{margin:0;color:var(--muted)}
+.subscribe{margin:28px 0;padding:16px;border:1px dashed var(--rule);border-radius:8px}
+img{max-width:100%}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>{{ base }}/</loc><lastmod>{{ now.strftime('%Y-%m-%d') }}</lastmod><changefreq>weekly</changefreq></url>
+{% for r in issues %}<url><loc>{{ base }}/issues/{{ r.slug }}/</loc><lastmod>{{ r.published_at[:10] }}</lastmod></url>
+{% endfor %}</urlset>

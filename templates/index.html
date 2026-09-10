@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ pub.name }}{% endblock %}
+{% block head %}
+<meta name="description" content="{{ pub.tagline }}">
+<link rel="canonical" href="{{ pub.site_url.rstrip('/') }}/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ pub.name }}">
+<meta property="og:description" content="{{ pub.tagline }}">
+{% endblock %}
+{% block content %}
+<h1>{{ pub.name }}</h1>
+<p class="dek">{{ pub.tagline }}</p>
+<div class="subscribe">Get it by email: subscribe at <a href="{{ pub.site_url.rstrip('/') }}/feed.xml">RSS</a> or reply to any issue. New issue every week.</div>
+<ul class="issue-list">
+{% for r in issues %}
+  <li>
+    <div class="date">{{ r.published_at[:10] }}</div>
+    <h3><a href="{{ pub.site_url.rstrip('/') }}/issues/{{ r.slug }}/">{{ r.title }}</a></h3>
+    <p>{{ r.excerpt }}</p>
+  </li>
+{% else %}
+  <li><p>The first issue has not been published yet.</p></li>
+{% endfor %}
+</ul>
+{% endblock %}

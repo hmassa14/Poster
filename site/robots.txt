@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://hmassa14.github.io/poster/sitemap.xml

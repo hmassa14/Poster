@@ -1,0 +1,71 @@
+# Seed feeds for the ingest stage. The research stage also runs open web
+# searches, so this list does not need to be exhaustive; it needs to be
+# high-precision. type: rss|atom is auto-detected.
+feeds:
+  # Labs and vendors (primary sources)
+  - name: Anthropic
+    url: https://www.anthropic.com/rss.xml
+    kind: primary
+  - name: OpenAI
+    url: https://openai.com/news/rss.xml
+    kind: primary
+  - name: Google DeepMind
+    url: https://deepmind.google/blog/rss.xml
+    kind: primary
+  - name: Google AI Blog
+    url: https://blog.google/technology/ai/rss/
+    kind: primary
+  - name: Meta AI
+    url: https://ai.meta.com/blog/rss/
+    kind: primary
+  - name: Microsoft Research
+    url: https://www.microsoft.com/en-us/research/feed/
+    kind: primary
+  - name: Hugging Face
+    url: https://huggingface.co/blog/feed.xml
+    kind: primary
+  - name: Mistral AI
+    url: https://mistral.ai/news/rss.xml
+    kind: primary
+  - name: NVIDIA Technical Blog
+    url: https://developer.nvidia.com/blog/feed
+    kind: primary
+  # Research
+  - name: arXiv cs.AI
+    url: https://rss.arxiv.org/rss/cs.AI
+    kind: research
+  - name: arXiv cs.LG
+    url: https://rss.arxiv.org/rss/cs.LG
+    kind: research
+  - name: arXiv cs.CL
+    url: https://rss.arxiv.org/rss/cs.CL
+    kind: research
+  # Reporting and analysis (secondary sources)
+  - name: The Verge AI
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    kind: secondary
+  - name: Ars Technica AI
+    url: https://arstechnica.com/ai/feed/
+    kind: secondary
+  - name: MIT Technology Review AI
+    url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+    kind: secondary
+  - name: TechCrunch AI
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    kind: secondary
+  - name: Simon Willison
+    url: https://simonwillison.net/atom/everything/
+    kind: analysis
+  - name: Import AI
+    url: https://importai.substack.com/feed
+    kind: analysis
+  - name: Interconnects
+    url: https://www.interconnects.ai/feed
+    kind: analysis
+  - name: Latent Space
+    url: https://www.latent.space/feed
+    kind: analysis
+  # Policy
+  - name: AI Now / policy (Reuters technology)
+    url: https://www.reutersagency.com/feed/?best-topics=tech&post_type=best
+    kind: secondary

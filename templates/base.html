@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ pub.language }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ pub.name }}{% endblock %}</title>
+{% block head %}{% endblock %}
+<link rel="alternate" type="application/rss+xml" title="{{ pub.name }}" href="{{ pub.site_url.rstrip('/') }}/feed.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abel|Geostar&display=swap">
+<link rel="stylesheet" href="{{ pub.site_url.rstrip('/') }}/style.css">
+</head>
+<body>
+<div class="wrap">
+<header class="masthead">
+  <a class="name" href="{{ pub.site_url.rstrip('/') }}/">{{ pub.name }}</a>
+  <nav><a href="{{ pub.site_url.rstrip('/') }}/">Archive</a><a href="{{ pub.site_url.rstrip('/') }}/feed.xml">RSS</a>{% if pub.publisher_url %}<a href="{{ pub.publisher_url }}">{{ pub.publisher }}</a>{% endif %}</nav>
+</header>
+{% block content %}{% endblock %}
+<footer class="footer">
+  <p class="disclosure">{{ disclosure }}</p>
+  <p>Published by <a href="{{ pub.publisher_url }}">{{ pub.publisher }}</a>. Feedback and corrections: open an issue labeled <code>feedback</code> on the <a href="https://github.com/hmassa14/poster/issues">source repository</a>.</p>
+</footer>
+</div>
+</body>
+</html>

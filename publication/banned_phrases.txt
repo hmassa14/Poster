@@ -1,0 +1,45 @@
+# One phrase per line. Case-insensitive substring match. Lines starting with # are ignored.
+game-changer
+game changer
+game-changing
+revolutionary
+revolutionize
+seamless
+seamlessly
+cutting-edge
+cutting edge
+state-of-the-art
+unlock
+unleash
+leverage
+leveraging
+deep dive
+delve
+in today's fast-paced
+in today's world
+in the ever-evolving
+ever-evolving
+rapidly evolving landscape
+landscape of AI
+it's worth noting
+it is worth noting
+interestingly,
+notably,
+importantly,
+only time will tell
+the future remains to be seen
+remains to be seen
+stay tuned
+buckle up
+let's dive in
+without further ado
+in conclusion
+as an ai
+as an ai language model
+paradigm shift
+supercharge
+turbocharge
+next-level
+a testament to
+navigate the
+tapestry

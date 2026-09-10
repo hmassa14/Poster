@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>{{ pub.name }}</title>
+<link>{{ base }}/</link>
+<description>{{ pub.tagline }}</description>
+<language>{{ pub.language }}</language>
+<lastBuildDate>{{ now|rfc2822 }}</lastBuildDate>
+<atom:link href="{{ base }}/feed.xml" rel="self" type="application/rss+xml"/>
+{% for r in issues %}<item>
+<title>{{ r.title }}</title>
+<link>{{ base }}/issues/{{ r.slug }}/</link>
+<guid isPermaLink="true">{{ base }}/issues/{{ r.slug }}/</guid>
+<pubDate>{{ r.published_at|rfc2822 }}</pubDate>
+<description>{{ r.excerpt }}</description>
+</item>
+{% endfor %}</channel>
+</rss>

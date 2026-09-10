@@ -1,0 +1,51 @@
+# Poster configuration. Everything here is safe to edit by hand; the feedback
+# agent edits publication/*.md, never this file.
+
+publication:
+  name: "This Week in AI"
+  tagline: "The week's AI news, researched and written by an AI editorial system."
+  site_url: "https://hmassa14.github.io/poster"   # override with POSTER_SITE_URL
+  publisher: "Haley Massa"
+  publisher_url: "https://attainableai.substack.com"
+  language: "en"
+  timezone: "America/New_York"
+  # Shown at the bottom of every issue and in the site footer. Transparency is
+  # a feature of this publication, not a disclaimer.
+  disclosure: >-
+    This issue was researched, written, reviewed, and published by an AI
+    editorial system with no human in the drafting loop. Every claim links to
+    the source it came from. Corrections and feedback go straight back into
+    the system and change how the next issue is written.
+
+models:
+  main: "claude-opus-5"      # research, editing, writing, critique, SEO, feedback
+  fast: "claude-sonnet-5"    # bulk triage of feed items
+  effort: "high"             # low | medium | high | xhigh | max
+  fallbacks: true            # server-side refusal fallbacks (beta)
+  max_tokens: 32000
+
+research:
+  lookback_days: 8
+  max_feed_items: 300
+  max_candidates: 40
+  max_web_searches: 30
+  max_web_fetches: 30
+  max_continuations: 6       # pause_turn resumes per research call
+
+editorial:
+  target_words_min: 1400
+  target_words_max: 2400
+  max_revision_rounds: 2
+  min_critic_score: 8        # out of 10; below this the draft is revised
+  verify_links: true         # deterministic HTTP check of every link in the draft
+
+publishing:
+  site_dir: "site"
+  email_provider: "dryrun"   # dryrun | buttondown | resend
+  review_mode: "auto"        # auto: publish directly. gate: stop before publish for a PR review.
+  send_email: true
+
+feedback:
+  github_repo: "hmassa14/poster"
+  github_label: "feedback"
+  max_lessons_in_prompt: 40

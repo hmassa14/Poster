@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="{{ pub.language }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f2ec;font-family:Helvetica,Arial,sans-serif;color:#1c1b19;">
+<span style="display:none;max-height:0;overflow:hidden;">{{ seo.email_preheader }}</span>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f2ec;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:8px;">
+<tr><td style="padding:28px 28px 8px;border-bottom:2px solid #1c1b19;">
+  <a href="{{ pub.site_url }}" style="font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:#1c1b19;text-decoration:none;">{{ pub.name }}</a>
+</td></tr>
+<tr><td style="padding:24px 28px 0;">
+  <h1 style="font-size:28px;line-height:1.2;margin:0 0 8px;font-weight:400;">{{ title }}</h1>
+  <p style="font-size:17px;color:#6b675f;font-style:italic;margin:0 0 6px;">{{ dek }}</p>
+  <p style="font-size:13px;color:#6b675f;margin:0 0 20px;">{{ published_at.strftime('%B %-d, %Y') }} · <a href="{{ url }}" style="color:#b5482a;">Read on the web</a></p>
+</td></tr>
+<tr><td style="padding:0 28px 8px;font-size:17px;line-height:1.6;">
+{{ body_html|safe }}
+</td></tr>
+<tr><td style="padding:16px 28px 28px;border-top:1px solid #e6e2da;font-size:13px;line-height:1.5;color:#6b675f;">
+  <p style="margin:0 0 10px;">{{ disclosure }}</p>
+  <p style="margin:0;">Published by <a href="{{ pub.publisher_url }}" style="color:#b5482a;">{{ pub.publisher }}</a>. Reply to this email with corrections or feedback; it goes straight back into the system. <a href="{{ '{{ unsubscribe_url }}' }}" style="color:#6b675f;">Unsubscribe</a></p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

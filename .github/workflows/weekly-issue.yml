@@ -1,0 +1,105 @@
+name: Weekly issue
+
+on:
+  schedule:
+    # Thursdays 13:00 UTC (09:00 New York). Change the cron to move publication day.
+    - cron: "0 13 * * 4"
+  workflow_dispatch:
+    inputs:
+      issue_date:
+        description: "Issue id / window end (YYYY-MM-DD). Default: today."
+        required: false
+      dry_run:
+        description: "Skip the email send"
+        type: boolean
+        default: false
+      force:
+        description: "Re-run stages even if artifacts exist"
+        type: boolean
+        default: false
+      start_from:
+        description: "Start from stage (ingest|triage|research|brief|draft|review|seo|render|publish|memory)"
+        required: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: weekly-issue
+  cancel-in-progress: false
+
+jobs:
+  issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RESEND_FROM: ${{ secrets.RESEND_FROM }}
+      RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      POSTER_SITE_URL: ${{ vars.POSTER_SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+
+      - name: Read review mode
+        id: mode
+        run: echo "mode=$(python -c 'import yaml;print(yaml.safe_load(open("poster.yaml"))["publishing"]["review_mode"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Fold in any new feedback before writing
+        run: poster feedback --close-issues || echo "feedback stage failed; continuing with the issue"
+
+      - name: Produce the issue
+        run: |
+          ARGS=""
+          [ -n "${{ inputs.issue_date }}" ] && ARGS="$ARGS --issue ${{ inputs.issue_date }}"
+          [ "${{ inputs.dry_run }}" = "true" ] && ARGS="$ARGS --dry-run"
+          [ "${{ inputs.force }}" = "true" ] && ARGS="$ARGS --force"
+          [ -n "${{ inputs.start_from }}" ] && ARGS="$ARGS --from ${{ inputs.start_from }}"
+          poster run $ARGS
+
+      - name: Commit artifacts, site, and memory
+        id: commit
+        run: |
+          git config user.name "poster-bot"
+          git config user.email "poster-bot@users.noreply.github.com"
+          git add issues site memory publication feedback
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            ISSUE=$(ls issues | sort | tail -n 1)
+            git commit -m "Issue $ISSUE" -m "Produced by the Poster pipeline."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push (auto mode)
+        if: steps.commit.outputs.changed == 'true' && !contains(steps.mode.outputs.mode, 'gate')
+        run: git push origin HEAD:${{ github.ref_name }}
+
+      - name: Open a review PR (gate mode)
+        if: steps.commit.outputs.changed == 'true' && contains(steps.mode.outputs.mode, 'gate')
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: poster/review-${{ github.run_id }}
+          title: "Review: next issue"
+          body: "Read `issues/<id>/final.md`, edit if needed, merge, then dispatch the workflow with start_from=publish."
+          labels: poster-review
+
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-run
+          path: |
+            issues/*/trace.jsonl
+            issues/*/cost.json
+            issues/*/06-lint-*.txt
+          if-no-files-found: ignore

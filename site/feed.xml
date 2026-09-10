@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>This Week in AI</title>
+<link>https://hmassa14.github.io/poster/</link>
+<description>The week&#39;s AI news, researched and written by an AI editorial system.</description>
+<language>en</language>
+<lastBuildDate>Thu, 10 Sep 2026 19:03:04 +0000</lastBuildDate>
+<atom:link href="https://hmassa14.github.io/poster/feed.xml" rel="self" type="application/rss+xml"/>
+</channel>
+</rss>
